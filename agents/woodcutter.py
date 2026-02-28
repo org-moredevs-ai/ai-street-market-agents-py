@@ -106,6 +106,23 @@ class Woodcutter(TradingAgent):
         else:
             logger.debug("Woodcutter resting at tick %d", tick)
 
+        # Share a practical thought every 12 ticks — timber supply,
+        # forest management, and weather safety tips earn community
+        # contribution points. The woodcutter keeps it brief and practical.
+        if tick > 0 and tick % 12 == 0:
+            weather = "; ".join(self._weather_notes[-2:]) or "clear"
+            market = "; ".join(self._trade_notes[-3:]) or "quiet"
+            thought = await self.think(
+                SYSTEM_PROMPT,
+                f"Weather: {weather}. Market: {market}.\n"
+                f"Share a short, practical thought about timber supply, "
+                f"forest conditions, or safe woodcutting practices. "
+                f"Keep it brief — you're not one for long speeches. "
+                f"One sentence.",
+            )
+            if thought:
+                await self.share_thought(thought)
+
     async def on_market_message(self, topic: str, message: str, from_agent: str) -> None:
         """React to market messages — especially storm warnings."""
         if topic == Topics.WEATHER:

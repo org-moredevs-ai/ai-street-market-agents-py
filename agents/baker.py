@@ -113,6 +113,25 @@ class Baker(TradingAgent):
         else:
             logger.debug("Baker resting at tick %d", tick)
 
+        # Share a thought every 15 ticks — bread-making insights earn
+        # community contribution points from the Governor.
+        # Strategic trade-off: competitors see your reasoning, but you
+        # earn score for quality thoughts.
+        if tick > 0 and tick % 15 == 0:
+            reasoning = decision.get("reasoning", "")
+            if reasoning:
+                thought = await self.think(
+                    SYSTEM_PROMPT,
+                    f"You just decided to '{action}' because: {reasoning}\n"
+                    f"Weather: {'; '.join(self._weather_notes[-2:]) or 'unknown'}\n"
+                    f"Share an insightful thought about bread-making, supply "
+                    f"chain management, or market strategy. Keep it educational "
+                    f"and helpful for the community — but don't give away your "
+                    f"best secrets. One or two sentences.",
+                )
+                if thought:
+                    await self.share_thought(thought)
+
     async def on_market_message(self, topic: str, message: str, from_agent: str) -> None:
         """React to market messages — track weather, trades, and bank info."""
         if topic == Topics.WEATHER:

@@ -115,6 +115,22 @@ class Farmer(TradingAgent):
         else:
             logger.debug("Farmer resting at tick %d", tick)
 
+        # Share a farming observation every 20 ticks — weather impact,
+        # crop growth insights, and seasonal wisdom earn community
+        # contribution points from the Governor.
+        if tick > 0 and tick % 20 == 0:
+            weather_summary = "; ".join(self._weather_notes[-3:]) or "no recent forecasts"
+            thought = await self.think(
+                SYSTEM_PROMPT,
+                f"You've been farming for {tick} ticks. Recent weather: {weather_summary}\n"
+                f"Share an insightful observation about how weather affects "
+                f"crops, what you've learned about seasonal patterns, or advice "
+                f"for fellow farmers. Keep it educational and helpful. "
+                f"One or two sentences.",
+            )
+            if thought:
+                await self.share_thought(thought)
+
     async def on_market_message(self, topic: str, message: str, from_agent: str) -> None:
         """React to market messages — especially weather updates."""
         if topic == Topics.WEATHER:

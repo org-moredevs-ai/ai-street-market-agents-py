@@ -97,6 +97,23 @@ class Merchant(TradingAgent):
         # Check balance regularly
         if tick % 10 == 0:
             await self.ask_banker("What is my current balance and inventory?")
+            # Share a carefully curated market insight every 30 ticks.
+            # The merchant is strategic — shares enough to earn Governor
+            # points but never reveals actual arbitrage positions.
+            if tick > 0 and tick % 30 == 0:
+                trades_summary = "; ".join(self._trade_history[-5:]) or "quiet market"
+                thought = await self.think(
+                    SYSTEM_PROMPT,
+                    f"Recent trade activity: {trades_summary}\n"
+                    f"Share a GENERAL market observation that sounds insightful "
+                    f"but does NOT reveal your specific trading strategy or "
+                    f"positions. Think about overall market health, trade volume, "
+                    f"or general advice. You want the Governor's community points "
+                    f"but you don't want competitors to copy your moves. "
+                    f"One careful sentence.",
+                )
+                if thought:
+                    await self.share_thought(thought)
             return
 
         context = self._build_context(tick)
